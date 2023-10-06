@@ -1,0 +1,28 @@
+# Login and Team Information
+# Can be found here: https://github.com/cwendt94/espn-api/discussions/150
+# Set SWID and ESPN_S2 to None if you don't have them
+SWID: "your_swid"
+ESPN_S2: "your_espn_s2"
+
+# Your league and team name
+# Can be found here:
+LEAGUE_ID: "your_league_id"
+Team Name: "your_team_name"
+
+# Whether or not to check free agents
+Check Free Agents: True
+
+# Considers trades with up to X players on each side
+# Note: Currently takes up to an hour with max. 2 players on each side
+Maximum Trade Size: 1
+
+# Players are unlikely to accept trades which are not in their favor
+# This is the minimum trade edge that will be considered
+Maximum Trade Edge: 0.02
+
+# Development Settings
+Use Proxies: False
+User Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+
+Player Cache TTL: 36000
+League Cache TTL: 36000

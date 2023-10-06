@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "fftrader"
+version = "0.1.0"
+description = ""
+authors = ["Pop101 <leon@leibmann.org>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+espn-api = "^0.32.0"
+PyYAML = "^6.0.1"
+anyascii = "^0.3.2"
+cachetools = "^5.3.1"
+lxml = "^4.9.3"
+levenshtein = "^0.22.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

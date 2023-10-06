@@ -1,0 +1,3 @@
+*.pyc
+config-priv.yml
+poetry.lock
