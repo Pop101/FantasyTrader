@@ -9,19 +9,7 @@ from cachetools import TTLCache, cached
 league_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
 free_agent_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
 league = League(int(config.league_id), datetime.now().year, config.espn_s2 or None, config.swid or None, debug=False)
-
-def espn_to_cbs_name(name:str):
-    # CBS only give us first initial and last name
-    # and does not include D/ST in the name
-    
-    name = name.strip()
-    if 'D/ST' not in name:
-        name = re.sub('^(.)[\w]*', '\\1.', name)
-    else:
-        name = re.sub('D/ST', '', name)
-        
-    return name.strip()
-  
+ 
 
 @cached(league_cache)  
 def get_teams():
@@ -51,6 +39,17 @@ def get_teams():
     teams[0][0]['is_my_team'] = True
     teams = [t[0] for t in teams]
     return teams
+
+@cached(free_agent_cache)
+def get_free_agents():
+    """Returns an unranked list of free agent names and positions"""
+    free_agents = list()
+    for player in league.free_agents(size=200):
+        free_agents.append({
+            'name': espn_to_cbs_name(player.name),
+            'position': player.position
+        })
+    return free_agents
 
 def estimate_team_value(team:dict):
     """Estimates the value of a team based on the average value of its non-benched players"""
@@ -108,13 +107,28 @@ def add_to_team(team:dict, player:dict):
     team['roster'].append(player)
     return team
 
-@cached(free_agent_cache)
-def get_free_agents():
-    """Returns an unranked list of free agent names and positions"""
-    free_agents = list()
-    for player in league.free_agents(size=200):
-        free_agents.append({
-            'name': espn_to_cbs_name(player.name),
-            'position': player.position
-        })
-    return free_agents
+def hash_team(team:dict) -> str:
+    """'Hashes' a team by converting it to a single string
+    such that 2 teams with the same name and players have the same str
+    At this point OOP would be better but eh"""
+    
+    team_str = team['team_name']
+    roster = sorted(team['roster'], key=lambda x: (x['name'], x['position']))
+    
+    for player in roster:
+        team_str = team_str + player['name'] + player['position']
+    
+    return team_str
+    
+    
+def espn_to_cbs_name(name:str):
+    # CBS only give us first initial and last name
+    # and does not include D/ST in the name
+    
+    name = name.strip()
+    if 'D/ST' not in name:
+        name = re.sub('^(.)[\w]*', '\\1.', name)
+    else:
+        name = re.sub('D/ST', '', name)
+        
+    return name.strip()

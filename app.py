@@ -1,5 +1,5 @@
 from modules.player_stats import get_all_players, get_player_info
-from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents
+from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, hash_team
 from modules.trades_between import generate_trades_between
 from modules import config
 from itertools import product, chain, combinations
@@ -74,27 +74,55 @@ if config.check_free_agents:
 print(f"Found {len(mutually_beneficial_trades)} mutually beneficial trades")
 print("Filtering down to a set of optimal trades")
 
-# Because I can only trade each player once(ex, can't trade the same dude to two different teams)
-# you can't take all the trades
-# Use a greedy algorithm to solve
+# While all these trades are possible, find the ones that actually benefit us
+# There are some important considerations
+# 1. We want to maximize (or minimize ig) or team's overall ranking
+# 2. We can never have unfilled spots on the team
+# 3. Every trade must increase team value (so that if future trades are rejected, we are not worse off)
+# Use DP to search all possible combos of trades
 
 players_to_trade = set()
 mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'])
 
-i = 0
-for trade in mutually_beneficial_trades:
-    if any(player['name'] in players_to_trade for player in trade['to_giveaway']):
-        continue
-    if any(player['name'] in players_to_trade for player in trade['to_receive']):
-        continue
+dynamic_cache = [dict() for _ in range(len(mutually_beneficial_trades))]
+
+current_location = len(mutually_beneficial_trades) - 1
+dynamic_cache[current_location][hash_team(my_team)] = [my_team, estimate_team_value(my_team), list()]
+
+# In theory this is O(n^2) since at most n teams are spawned by n unique trades
+# Taking LONG AF tho
+while current_location >= 0:
+    print(current_location)
     
-    for player in trade['to_giveaway']:
-        players_to_trade.add(player['name'])
-    for player in trade['to_receive']:
-        players_to_trade.add(player['name'])
+    # For each team,
+    for team_option in dynamic_cache[current_location]:
+        # either take the current trade
+        curr_team, curr_estimate, trade_history = dynamic_cache[current_location][team_option]
+        
+        trade = mutually_beneficial_trades[current_location]
+        trade_valid = True
+        for player in trade['to_giveaway']:
+            trade_valid = trade_valid and player in curr_team['roster']
+            curr_team = remove_from_team(curr_team, player)
+        for player in trade['to_receive']:
+            curr_team = add_to_team(curr_team, player)
+        new_estimate = estimate_team_value(curr_team)
+        trade_history.append(trade)
+        
+        # Note: we NEVER want to path through an invalid team
+        # Nor do we want to ever have a worse team than before
+        if new_estimate < curr_estimate and trade_valid:
+            dynamic_cache[current_location - 1][hash_team(curr_team)] = [curr_team, new_estimate, trade_history]
+        
+        # or skip it
+        dynamic_cache[current_location - 1][team_option] = dynamic_cache[current_location][team_option]
     
-    i += 1
-    
+    current_location -= 1
+
+# Now, we know that the min(cache[0]) is the best possible team
+best_line = min(dynamic_cache[0], key=lambda x: x[1])
+
+for i, trade in enumerate(best_line[2]):
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
     for player in trade['to_giveaway']:
