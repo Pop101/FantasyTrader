@@ -24,10 +24,13 @@ def get_all_players():
         for rank, player in enumerate(consensus_rankings.xpath('.//div[@class="player"]')):
             if not player.xpath('./a'): continue
             player_name = player.xpath('./a')[0].text_content()
+            
+            percentile = rank / total_ranks
+            
             players.append({
                 'name': player_name.strip(),
                 'rank': rank,
-                'percentile': (rank - 1) / total_ranks,
+                'percentile': (percentile ** 0.5),
                 'pos': pos,
             })
     
