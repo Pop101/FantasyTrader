@@ -65,7 +65,7 @@ def get_teams():
 def get_team_lineup(team:dict):
     """Estimates the best lineup for a team"""
     
-    players_by_position = dict()
+    players_by_position = {k: list() for k in positions_on_team.keys()}
     for player in team['roster']:
         # Note: get_player_info handles name collisions and player not found
         player_info = get_player_info(player['name'], player['position'])
@@ -111,6 +111,7 @@ def estimate_team_value(team:dict):
     for pos, players in lineup.items():
         if pos == 'Bench': continue
         
+        # If we cannot fill a position, the team is invalid
         if len(players) < positions_on_team[pos]:
             return float('inf')
         
@@ -151,6 +152,10 @@ def print_team(team:dict, scores=True, lineup=True):
         lineup = get_team_lineup(team)
         for pos, players in lineup.items():
             output += f"\n{pos}"
+            
+            if len(players) == 0:
+                output += f"\n\tNone"
+            
             for player in players:
                 output += f"\n\t{player['name']} ({player['pos']}) - {player['percentile']}"
     
