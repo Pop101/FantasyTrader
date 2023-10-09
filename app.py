@@ -100,12 +100,18 @@ for trade in mutually_beneficial_trades:
     for player in trade['to_receive']:
         players_to_trade.add(player['name'])
         next_running_team = add_to_team(next_running_team, player)
-    
+        
+        
     i += 1
-    
-    if estimate_team_value(next_running_team) > estimate_team_value(running_team):
-        break
+    delta = estimate_team_value(next_running_team) - estimate_team_value(running_team)
+    if delta > 0:
+        # Never accept worse teams -> trade chain ends if team is invalid
+        break 
+    elif delta == 0:
+        # Ignore trades where we would bench the new guy
+        continue 
     else:
+        # This trade is good
         running_team = next_running_team
     
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
@@ -119,7 +125,9 @@ for trade in mutually_beneficial_trades:
     
     print(f"\tMy team value delta: {trade['my_delta']}")
     print(f"\tTheir team value delta: {trade['their_delta']}")
+
     print("Running Team Value: ", estimate_team_value(running_team))
+    
 
 print()
 
