@@ -159,6 +159,7 @@ while True:
     except KeyboardInterrupt:
         break
 
+
 running_team = curr_best_team.copy()
 for i, trade in enumerate(curr_best_trades):
     print(f"Trade Suggestion #{i+1} - {trade['other_team']}")
