@@ -71,31 +71,52 @@ if config.check_free_agents:
 print(f"Found {len(mutually_beneficial_trades)} mutually beneficial trades")
 print("Filtering down to a set of optimal trades")
 
-# Because I can only trade each player once(ex, can't trade the same dude to two different teams)
-# you can't take all the trades
-# Use a greedy algorithm to solve
-
+# Use a monte carlo sim to try and find a good set of trades
+from random import random, sample,randint
 players_to_trade = set()
 mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'])
 
-running_team = my_team.copy()
-i = 0
-for trade in mutually_beneficial_trades:
-    if any(player['name'] in players_to_trade for player in trade['to_giveaway']):
-        continue
-    if any(player['name'] in players_to_trade for player in trade['to_receive']):
-        continue
+max_trade_size = len(my_team['roster'])
+temperature = 0.01
+
+curr_best_team = my_team.copy()
+curr_best_team_score = estimate_team_value(curr_best_team)
+
+def apply_trades(team, trades):
+    team = team.copy()
+    is_valid = True
+    for trade in trades:
+        for p in trade['to_giveaway']:
+            if p not in team['roster']:
+                is_valid = False
+                break
+            
+            team = remove_from_team(team, p)
+        for p in trade['to_receive']:
+            team = add_to_team(team, p)
     
-    for player in trade['to_giveaway']:
-        players_to_trade.add(player['name'])
-        running_team = remove_from_team(running_team, player)
-    for player in trade['to_receive']:
-        players_to_trade.add(player['name'])
-        running_team = add_to_team(running_team, player)
-    
-    i += 1
-    
-    print(f"Trade Suggestion #{i} - {trade['other_team']}")
+    return team, is_valid
+
+
+while True:
+    try:
+        # Naive solution: pick a random set of trades and see if it's better
+        trades = sample(mutually_beneficial_trades, randint(1, max_trade_size))
+        team, is_valid = apply_trades(my_team, trades)
+        team_score = estimate_team_value(team) if is_valid else float('inf')
+        
+        if team_score < curr_best_team_score: 
+            print("Found a better team! Delta: ", curr_best_team_score - team_score)
+            curr_best_team = team
+            curr_best_team_score = team_score
+            curr_best_trades = trades
+            
+    except KeyboardInterrupt:
+        break
+
+running_team = curr_best_team.copy()
+for i, trade in enumerate(curr_best_trades):
+    print(f"Trade Suggestion #{i+1} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
     for player in trade['to_giveaway']:
         print(f"{player['name']} ({player['position']}) ", end=" ")
