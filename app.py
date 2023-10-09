@@ -1,5 +1,5 @@
 from modules.player_stats import get_all_players, get_player_info
-from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents
+from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team
 from modules.trades_between import generate_trades_between
 from modules import config
 from itertools import product, chain, combinations
@@ -8,10 +8,7 @@ print("Loaded successfully")
 print(f"\tParsed info on {len(get_all_players())} players")
 
 print(f"Your team is {get_teams()[0]['team_name']}")
-for player in get_teams()[0]['roster']:
-    player_info = get_player_info(player['name'], player['position'])
-    print(f"\t{player['name']} ({player['position']}) - {player_info['percentile']}")
-print("My team value: ", estimate_team_value(get_teams()[0]))
+print(print_team(get_teams()[0], scores=True, lineup=True))
 
 print()
 
@@ -81,6 +78,7 @@ print("Filtering down to a set of optimal trades")
 players_to_trade = set()
 mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'])
 
+running_team = my_team.copy()
 i = 0
 for trade in mutually_beneficial_trades:
     if any(player['name'] in players_to_trade for player in trade['to_giveaway']):
@@ -90,8 +88,10 @@ for trade in mutually_beneficial_trades:
     
     for player in trade['to_giveaway']:
         players_to_trade.add(player['name'])
+        running_team = remove_from_team(running_team, player)
     for player in trade['to_receive']:
         players_to_trade.add(player['name'])
+        running_team = add_to_team(running_team, player)
     
     i += 1
     
@@ -106,3 +106,8 @@ for trade in mutually_beneficial_trades:
     
     print(f"\tMy team value delta: {trade['my_delta']}")
     print(f"\tTheir team value delta: {trade['their_delta']}")
+    print("Running Team Value: ", estimate_team_value(running_team))
+
+print()
+
+print(print_team(running_team, scores=True, lineup=True))
