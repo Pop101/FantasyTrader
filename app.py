@@ -25,6 +25,13 @@ for other_team in get_teams()[1:]:
         # Perform swaps.
         # Consider 4 'for's to handle name collisions
         
+        # Skip all trades between the same position
+        # These are extremely unlikely to occur, since 
+        # one actor in the trade will always be screwed
+        
+        if all(s['position'] == r['position'] for s in to_swap for r in to_receive):
+            continue
+        
         my_team_postswap = my_team.copy()
         ot_team_postswap = other_team.copy()
         for p in to_swap:
@@ -86,14 +93,20 @@ for trade in mutually_beneficial_trades:
     if any(player['name'] in players_to_trade for player in trade['to_receive']):
         continue
     
+    next_running_team = running_team.copy()
     for player in trade['to_giveaway']:
         players_to_trade.add(player['name'])
-        running_team = remove_from_team(running_team, player)
+        next_running_team = remove_from_team(next_running_team, player)
     for player in trade['to_receive']:
         players_to_trade.add(player['name'])
-        running_team = add_to_team(running_team, player)
+        next_running_team = add_to_team(next_running_team, player)
     
     i += 1
+    
+    if estimate_team_value(next_running_team) > estimate_team_value(running_team):
+        break
+    else:
+        running_team = next_running_team
     
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
