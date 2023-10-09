@@ -76,8 +76,8 @@ from random import random, sample,randint
 players_to_trade = set()
 mutually_beneficial_trades = list(mutually_beneficial_trades)
 
-max_trade_size = 8 #len(my_team['roster'])
-temperature = 0.02 # higher = more exploration
+max_trade_size = 6 #len(my_team['roster'])
+temperature = 0.01 # higher = more exploration
 
 curr_best_team = my_team.copy()
 curr_best_trades = list()
@@ -143,9 +143,9 @@ while True:
         team, is_valid = apply_trades(my_team, trades)
         team_score = estimate_team_value(team) if is_valid else float('inf')
         
-        force_explore = is_valid and random() < 10 ** (-temperature * curr_best_team_score)
+        force_explore = team_score < float('inf') and random() < 10 ** (-temperature * curr_best_team_score) 
         if team_score < curr_expl_team_score or force_explore:
-            curr_best_trades = trades
+            curr_expl_trades = trades
             curr_expl_team = team
             curr_expl_team_score = team_score
 
@@ -159,15 +159,20 @@ while True:
     except KeyboardInterrupt:
         break
 
-running_team = curr_best_team.copy()
+running_team = my_team.copy()
 for i, trade in enumerate(curr_best_trades):
     print(f"Trade Suggestion #{i+1} - {trade['other_team']}")
+    
     print("\t Trade away: ", end=" ")
     for player in trade['to_giveaway']:
         print(f"{player['name']} ({player['position']}) ", end=" ")
+        running_team = remove_from_team(running_team, player)
+    
     print("\n\t For: ", end=" ")
     for player in trade['to_receive']:
         print(f"{player['name']} ({player['position']}) ", end=" ")
+        running_team = add_to_team(running_team, player)
+    
     print()
     
     print(f"\tMy team value delta: {trade['my_delta']}")
