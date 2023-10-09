@@ -77,12 +77,13 @@ print("Filtering down to a set of optimal trades")
 # Use a monte carlo sim to try and find a good set of trades
 from random import random, sample,randint
 players_to_trade = set()
-mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'])
+mutually_beneficial_trades = list(mutually_beneficial_trades)
 
-max_trade_size = len(my_team['roster'])
-temperature = 0.01
+max_trade_size = 8 #len(my_team['roster'])
+temperature = 0.02 # higher = more exploration
 
 curr_best_team = my_team.copy()
+curr_best_trades = list()
 curr_best_team_score = estimate_team_value(curr_best_team)
 
 def apply_trades(team, trades):
@@ -96,20 +97,64 @@ def apply_trades(team, trades):
             
             team = remove_from_team(team, p)
         for p in trade['to_receive']:
+            if p in team['roster']:
+                is_valid = False
+                break
             team = add_to_team(team, p)
     
     return team, is_valid
 
+def substitute_trades(trade_list, count=1):
+    """Replace X trades from the trade list with X different ones
+    Note: this can easily invalidate a trade list with duplicates"""
+    
+    trade_list = trade_list.copy()
+    
+    indices = sample(range(len(trade_list)), count)
+    samples = sample(mutually_beneficial_trades, count)
+    for a, x in zip(indices, samples):
+        trade_list[a] = x
+    
+    return trade_list
+
+def reorder_trades(trade_list, count=1):
+    """Performs X random swaps on the trade list"""
+    
+    trade_list = trade_list.copy()
+    
+    for a, b in zip(sample(range(len(trade_list)), count), sample(range(len(trade_list)), count)):
+        trade_list[a], trade_list[b] = trade_list[b], trade_list[a]
+    
+    return trade_list
+
+curr_expl_trades = sample(mutually_beneficial_trades, max_trade_size)
+curr_expl_team, is_valid = apply_trades(my_team, curr_best_trades)
+curr_expl_team_score = estimate_team_value(curr_best_team) if is_valid else float('inf')
 
 while True:
     try:
-        # Naive solution: pick a random set of trades and see if it's better
-        trades = sample(mutually_beneficial_trades, randint(1, max_trade_size))
+        # Slightly more refined: explore // exploit split
+        X = len(curr_expl_trades)
+        
+        trades = curr_expl_trades.copy()
+        if random() < 0.75:
+            trades = substitute_trades(trades, randint(1, X))
+        if random() < 0.5:
+            trades = reorder_trades(trades, randint(1, X // 2 + 1))
+        
+        # Recalculate the team value
         team, is_valid = apply_trades(my_team, trades)
         team_score = estimate_team_value(team) if is_valid else float('inf')
         
+        force_explore = is_valid and random() < 10 ** (-temperature * curr_best_team_score)
+        if team_score < curr_expl_team_score or force_explore:
+            curr_best_trades = trades
+            curr_expl_team = team
+            curr_expl_team_score = team_score
+
+            
         if team_score < curr_best_team_score: 
-            print("Found a better team! Delta: ", curr_best_team_score - team_score)
+            print(f"Found a better team! Score: {team_score:.4f} Delta: {team_score - curr_best_team_score:.4f}")
             curr_best_team = team
             curr_best_team_score = team_score
             curr_best_trades = trades
