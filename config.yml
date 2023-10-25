@@ -12,9 +12,9 @@ Team Name: "your_team_name"
 # Whether or not to check free agents
 Check Free Agents: True
 
-# Considers trades with up to X players on each side
-# Note: Currently takes up to an hour with max. 2 players on each side
-Maximum Trade Size: 1
+# Considers trades with up to X players
+# Note: Currently takes up to an hour with max. 3 players
+Maximum Trade Size: 2
 
 # Players are unlikely to accept trades which are not in their favor
 # This is the minimum trade edge that will be considered
