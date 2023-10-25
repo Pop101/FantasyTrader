@@ -1,6 +1,7 @@
 from modules.player_stats import get_all_players
 from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team
 from modules.trades_between import generate_trades_between
+from modules.evaluator import is_trade_mutual
 from modules import config
 
 print("Loaded successfully")
@@ -17,7 +18,7 @@ mutually_beneficial_trades = list()
 my_team = get_teams()[0]
 for other_team in get_teams()[1:]:
     print(f"Simulating trades with {other_team['team_name']}")
-    for to_swap, to_receive in generate_trades_between(my_team['roster'], other_team['roster'], max_per_side=config.maximum_trade_size):
+    for to_swap, to_receive in generate_trades_between(my_team['roster'], other_team['roster'], config.maximum_trade_size):
         pre_swap_team1_value = estimate_team_value(my_team)
         pre_swap_team2_value = estimate_team_value(other_team)
         
@@ -44,8 +45,7 @@ for other_team in get_teams()[1:]:
         post_swap_team1_value = estimate_team_value(my_team_postswap)
         post_swap_team2_value = estimate_team_value(ot_team_postswap)
         
-        edge_percentage = 1 - config.maximum_trade_edge
-        if post_swap_team1_value < pre_swap_team1_value and edge_percentage*post_swap_team2_value <= pre_swap_team2_value:
+        if is_trade_mutual(pre_swap_team1_value, post_swap_team1_value, pre_swap_team2_value, post_swap_team2_value):
             mutually_beneficial_trades.append({
                 'to_giveaway': to_swap,
                 'to_receive': to_receive,
