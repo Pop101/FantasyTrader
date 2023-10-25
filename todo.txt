@@ -1,3 +1,0 @@
-Notes:
-- FLEX position completely ignored
-- Players who play multiple positions are only counted for their primary position
