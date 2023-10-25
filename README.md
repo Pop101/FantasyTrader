@@ -109,14 +109,14 @@ To try out different evaluators, make any change to `modules/evaluator.py` and r
 Helpful information: A player's information looks like this:
 ```json
 {
-    'name': 'T. Hill',
-    'rank': 0,
-    'percentile': 0.0,
-    'percentile_score': 0.0,
-    'pos': 'WR',
-    'position': 'WR',
-    'proj_points': 23.9,
-    'proj_season_points': 293.63
+    "name": "T. Hill",
+    "rank": 0,
+    "percentile": 0.0,
+    "percentile_score": 0.0,
+    "pos": "WR",
+    "position": "WR",
+    "proj_points": 23.9,
+    "proj_season_points": 293.63
 }
 ```
 
