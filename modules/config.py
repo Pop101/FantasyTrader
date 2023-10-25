@@ -11,4 +11,8 @@ def normalize_str(_str) -> str:
 with open('config.yml', 'r') as file:
     raw_cfg = yaml.safe_load(file)
     for k, v in raw_cfg.items():
+        if str(v).startswith('your_'):
+            print(f'Please change {k} in config.yml')
+            exit(1)
+        
         globals()[normalize_str(k)] = v
