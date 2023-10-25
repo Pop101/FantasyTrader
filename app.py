@@ -1,8 +1,7 @@
-from modules.player_stats import get_all_players, get_player_info
+from modules.player_stats import get_all_players
 from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team
 from modules.trades_between import generate_trades_between
 from modules import config
-from itertools import product, chain, combinations
 
 print("Loaded successfully")
 print(f"\tParsed info on {len(get_all_players())} players")
@@ -112,7 +111,7 @@ for trade in mutually_beneficial_trades:
         continue 
     else:
         # This trade is good
-        running_team = next_running_team
+        running_team = next_running_team.copy()
     
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
@@ -121,7 +120,7 @@ for trade in mutually_beneficial_trades:
     print("\n\t For: ", end=" ")
     for player in trade['to_receive']:
         print(f"{player['name']} ({player['position']}) ", end=" ")
-    print()
+    print() 
     
     print(f"\tMy team value delta: {trade['my_delta']}")
     print(f"\tTheir team value delta: {trade['their_delta']}")

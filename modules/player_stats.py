@@ -30,7 +30,8 @@ def get_all_players():
             players.append({
                 'name': player_name.strip(),
                 'rank': rank,
-                'percentile': (percentile ** 0.5),
+                'percentile': percentile,
+                'percentile_score': (percentile ** 0.5),
                 'pos': pos,
             })
     

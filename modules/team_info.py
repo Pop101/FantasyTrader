@@ -1,6 +1,7 @@
 import re
 from modules import config
 from modules.player_stats import get_player_info
+from modules.evaluator import player_evaluator, higher_is_better
 from espn_api.football import League
 from datetime import datetime
 from Levenshtein import ratio
@@ -33,6 +34,28 @@ def espn_to_cbs_name(name:str):
     return name.strip()
   
 
+def player_to_dict(player):
+    # Print the projected points for next game of each player
+    proj_points = 0.0
+    for _, v in sorted(player.stats.items(), key=lambda x: x[0]):
+        if 'projected_points' in v and not 'points' in v:
+            proj_points = v['projected_points']
+            break
+    
+    # Build basic player dict
+    basic_info = {
+        'name': espn_to_cbs_name(player.name),
+        'position': player.position,
+        'proj_points': proj_points,
+        'proj_season_points': player.projected_total_points
+    }
+    
+    # Grab percentile data from player_stats
+    pro_ratings = get_player_info(basic_info['name'], basic_info['position'])
+    
+    # Merge dicts
+    return {**pro_ratings, **basic_info}
+
 @cached(league_cache)  
 def get_teams():
     teams = list()
@@ -48,10 +71,7 @@ def get_teams():
         
         # Extract roster
         for player in team.roster:
-            team_info['roster'].append({
-                'name': espn_to_cbs_name(player.name),
-                'position': player.position
-            })
+            team_info['roster'].append(player_to_dict(player))
             
         teams.append(team_info)
     
@@ -67,14 +87,12 @@ def get_team_lineup(team:dict):
     
     players_by_position = {k: list() for k in positions_on_team.keys()}
     for player in team['roster']:
-        # Note: get_player_info handles name collisions and player not found
-        player_info = get_player_info(player['name'], player['position'])
-        players_by_position.setdefault(player['position'], list()).append(player_info)
+        players_by_position.setdefault(player['position'], list()).append(player)
     
     # Note: only the top players of each position are counted
     
     players_by_position = {
-        k: sorted(v, key=lambda x: x['percentile'])
+        k: sorted(v, key=player_evaluator, reverse=not bool(higher_is_better))
         for k,v in players_by_position.items()
     }
     
@@ -90,7 +108,7 @@ def get_team_lineup(team:dict):
     # Grab the best benched player that's RB, WR, or TE -> they're flex
     if 'Bench' in players_by_position:
         eligible_players = [p for p in players_by_position['Bench'] if p['pos'] in ['RB', 'WR', 'TE']]
-        eligible_players = sorted(eligible_players, key=lambda x: x['percentile'])
+        eligible_players = sorted(eligible_players, key=player_evaluator, reverse=not bool(higher_is_better))
         
         flexes = eligible_players[:min(positions_on_team['FLEX'], len(eligible_players))]
         
@@ -113,7 +131,7 @@ def estimate_team_value(team:dict):
         
         # If we cannot fill a position, the team is invalid
         if len(players) < positions_on_team[pos]:
-            return float('inf')
+            return float('-inf') if higher_is_better else float('inf')
         
         for player in players:
             total_value += player['percentile']
@@ -145,8 +163,7 @@ def print_team(team:dict, scores=True, lineup=True):
         for player in team['roster']:
             output += f"\n\t{player['name']} ({player['position']})"
             if scores:
-                player_info = get_player_info(player['name'], player['position'])
-                output += f" - {player_info['percentile']}"
+                output += f" - {player_evaluator(player)}"
     
     if lineup:
         lineup = get_team_lineup(team)
@@ -168,8 +185,5 @@ def get_free_agents():
     """Returns an unranked list of free agent names and positions"""
     free_agents = list()
     for player in league.free_agents(size=200):
-        free_agents.append({
-            'name': espn_to_cbs_name(player.name),
-            'position': player.position
-        })
+        free_agents.append(player_to_dict(player))
     return free_agents
