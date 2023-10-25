@@ -1,17 +1,15 @@
 from modules.player_stats import get_all_players
 from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team
 from modules.trades_between import generate_trades_between
-from modules.evaluator import is_trade_mutual
+from modules.evaluator import is_trade_mutual, is_beneficial, higher_is_better
 from modules import config
 
-print("Loaded successfully")
-print(f"\tParsed info on {len(get_all_players())} players")
+print(f"Parsed info on {len(get_all_players())} players")
 
 print(f"Your team is {get_teams()[0]['team_name']}")
 print(print_team(get_teams()[0], scores=True, lineup=True))
 
 print()
-
 print("Beginning trade simulation")
 mutually_beneficial_trades = list()
 
@@ -65,7 +63,7 @@ if config.check_free_agents:
         
         post_swap_team_value = estimate_team_value(my_team_postswap)
         
-        if post_swap_team_value < pre_swap_team_value:
+        if is_beneficial(pre_swap_team_value, post_swap_team_value):
             mutually_beneficial_trades.append({
                     'to_giveaway': (player_1,),
                     'to_receive': (player_2,),
@@ -82,7 +80,7 @@ print("Filtering down to a set of optimal trades")
 # Use a greedy algorithm to solve
 
 players_to_trade = set()
-mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'])
+mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x['my_delta'], reverse=higher_is_better)
 
 running_team = my_team.copy()
 i = 0
@@ -101,9 +99,8 @@ for trade in mutually_beneficial_trades:
         next_running_team = add_to_team(next_running_team, player)
         
         
-    i += 1
     delta = estimate_team_value(next_running_team) - estimate_team_value(running_team)
-    if delta > 0:
+    if (higher_is_better and delta < 0) or (not higher_is_better and delta > 0):
         # Never accept worse teams -> trade chain ends if team is invalid
         break 
     elif delta == 0:
@@ -113,6 +110,7 @@ for trade in mutually_beneficial_trades:
         # This trade is good
         running_team = next_running_team.copy()
     
+    i += 1
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
     for player in trade['to_giveaway']:

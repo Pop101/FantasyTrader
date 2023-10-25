@@ -92,7 +92,7 @@ def get_team_lineup(team:dict):
     # Note: only the top players of each position are counted
     
     players_by_position = {
-        k: sorted(v, key=player_evaluator, reverse=not bool(higher_is_better))
+        k: sorted(v, key=player_evaluator, reverse=bool(higher_is_better))
         for k,v in players_by_position.items()
     }
     
@@ -108,7 +108,7 @@ def get_team_lineup(team:dict):
     # Grab the best benched player that's RB, WR, or TE -> they're flex
     if 'Bench' in players_by_position:
         eligible_players = [p for p in players_by_position['Bench'] if p['pos'] in ['RB', 'WR', 'TE']]
-        eligible_players = sorted(eligible_players, key=player_evaluator, reverse=not bool(higher_is_better))
+        eligible_players = sorted(eligible_players, key=player_evaluator, reverse=bool(higher_is_better))
         
         flexes = eligible_players[:min(positions_on_team['FLEX'], len(eligible_players))]
         
@@ -134,7 +134,7 @@ def estimate_team_value(team:dict):
             return float('-inf') if higher_is_better else float('inf')
         
         for player in players:
-            total_value += player['percentile']
+            total_value += player_evaluator(player)
     
     return total_value #/ len(team['roster'])
 
@@ -174,7 +174,7 @@ def print_team(team:dict, scores=True, lineup=True):
                 output += f"\n\tNone"
             
             for player in players:
-                output += f"\n\t{player['name']} ({player['pos']}) - {player['percentile']}"
+                output += f"\n\t{player['name']} ({player['pos']}) - {player_evaluator(player)}"
     
     if scores: output += f"\n\nOverall value: {estimate_team_value(team)}"
     
