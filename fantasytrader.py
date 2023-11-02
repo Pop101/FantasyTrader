@@ -32,13 +32,16 @@ for other_team in get_teams()[1:]:
         
         my_team_postswap = my_team.copy()
         ot_team_postswap = other_team.copy()
+        my_team_postswap['roster'] = my_team_postswap['roster'].copy()
+        ot_team_postswap['roster'] = ot_team_postswap['roster'].copy()
+        
         for p in to_swap:
             my_team_postswap = remove_from_team(my_team_postswap, p)
             ot_team_postswap = add_to_team(ot_team_postswap, p)
         
         for p in to_receive:
             my_team_postswap = add_to_team(my_team_postswap, p)
-            ot_team_postswap = remove_from_team(other_team, p)            
+            ot_team_postswap = remove_from_team(ot_team_postswap, p)            
         
         post_swap_team1_value = estimate_team_value(my_team_postswap)
         post_swap_team2_value = estimate_team_value(ot_team_postswap)
@@ -85,31 +88,35 @@ mutually_beneficial_trades = sorted(mutually_beneficial_trades, key=lambda x: x[
 running_team = my_team.copy()
 i = 0
 for trade in mutually_beneficial_trades:
+    # Skip any trade that involves a player we've already traded
     if any(player['name'] in players_to_trade for player in trade['to_giveaway']):
         continue
     if any(player['name'] in players_to_trade for player in trade['to_receive']):
         continue
     
+    # Calculate the next possible team
     next_running_team = running_team.copy()
     for player in trade['to_giveaway']:
-        players_to_trade.add(player['name'])
         next_running_team = remove_from_team(next_running_team, player)
     for player in trade['to_receive']:
-        players_to_trade.add(player['name'])
         next_running_team = add_to_team(next_running_team, player)
         
-        
+    
+    # Check if this team is acceptable
     delta = estimate_team_value(next_running_team) - estimate_team_value(running_team)
     if (higher_is_better and delta < 0) or (not higher_is_better and delta > 0):
         # Never accept worse teams -> trade chain ends if team is invalid
         break 
     elif delta == 0:
-        # Ignore trades where we would bench the new guy
+        # Ignore trades where we would just bench the new guy
         continue 
     else:
         # This trade is good
         running_team = next_running_team.copy()
+        players_to_trade.update(player['name'] for player in trade['to_giveaway'])
+        players_to_trade.update(player['name'] for player in trade['to_receive'])
     
+    # Print the trade
     i += 1
     print(f"Trade Suggestion #{i} - {trade['other_team']}")
     print("\t Trade away: ", end=" ")
