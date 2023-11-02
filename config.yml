@@ -18,7 +18,7 @@ Check Free Agents: True
 Maximum Trade Size: 2
 
 # Other team managers are unlikely to accept trades which are not in their favor
-# This is the minimum trade edge that will be considered
+# This is the maximum trade edge, in percent, that will be considered
 Maximum Trade Edge: 0.02
 
 # Development Settings
