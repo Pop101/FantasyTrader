@@ -14,8 +14,7 @@ Team Name: "your_team_name"
 Check Free Agents: True
 
 # Considers trades with up to X players
-# Note: Currently takes very long with max. 3 players
-Maximum Trade Size: 2
+Maximum Trade Size: 3
 
 # Other team managers are unlikely to accept trades which are not in their favor
 # This is the maximum trade edge, in percent, that will be considered
