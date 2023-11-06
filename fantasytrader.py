@@ -1,7 +1,7 @@
 from modules.player_stats import get_all_players
-from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team
+from modules.team_info import get_teams, estimate_team_value, add_to_team, remove_from_team, get_free_agents, print_team, get_team_lineup
 from modules.trades_between import generate_trades_between
-from modules.evaluator import is_trade_mutual, is_beneficial, higher_is_better
+from modules.evaluator import is_trade_mutual, is_beneficial, higher_is_better, worst_player
 from modules import config
 
 print(f"Parsed info on {len(get_all_players())} players")
@@ -41,7 +41,18 @@ for other_team in get_teams()[1:]:
         
         for p in to_receive:
             my_team_postswap = add_to_team(my_team_postswap, p)
-            ot_team_postswap = remove_from_team(ot_team_postswap, p)            
+            ot_team_postswap = remove_from_team(ot_team_postswap, p)
+            
+        # Drop X players from our team until we reach the roster size limit
+        to_drop = list()
+        while len(my_team_postswap['roster']) > config.maximum_team_size:
+            # (we don't care about the other team since they will be reset)
+            team_lineup = get_team_lineup(my_team_postswap)
+            benched_players = team_lineup['Bench']
+            worst_benchie = worst_player(benched_players)
+            
+            to_drop.append(worst_benchie)
+            my_team_postswap = remove_from_team(my_team_postswap, worst_benchie)
         
         post_swap_team1_value = estimate_team_value(my_team_postswap)
         post_swap_team2_value = estimate_team_value(ot_team_postswap)
@@ -50,6 +61,7 @@ for other_team in get_teams()[1:]:
             mutually_beneficial_trades.append({
                 'to_giveaway': to_swap,
                 'to_receive': to_receive,
+                'to_drop': to_drop,
                 'other_team': other_team['team_name'],
                 'my_delta': post_swap_team1_value - pre_swap_team1_value,
                 'their_delta': post_swap_team2_value - pre_swap_team2_value,
@@ -70,6 +82,7 @@ if config.check_free_agents:
             mutually_beneficial_trades.append({
                     'to_giveaway': (player_1,),
                     'to_receive': (player_2,),
+                    'to_drop': tuple(),
                     'other_team': 'Free Agents',
                     'my_delta': post_swap_team_value - pre_swap_team_value,
                     'their_delta': 0,
@@ -93,6 +106,8 @@ for trade in mutually_beneficial_trades:
         continue
     if any(player['name'] in players_to_trade for player in trade['to_receive']):
         continue
+    if any(player['name'] in players_to_trade for player in trade['to_drop']):
+        continue
     
     # Calculate the next possible team
     next_running_team = running_team.copy()
@@ -100,6 +115,8 @@ for trade in mutually_beneficial_trades:
         next_running_team = remove_from_team(next_running_team, player)
     for player in trade['to_receive']:
         next_running_team = add_to_team(next_running_team, player)
+    for player in trade['to_drop']:
+        next_running_team = remove_from_team(next_running_team, player)
         
     
     # Check if this team is acceptable
@@ -115,6 +132,7 @@ for trade in mutually_beneficial_trades:
         running_team = next_running_team.copy()
         players_to_trade.update(player['name'] for player in trade['to_giveaway'])
         players_to_trade.update(player['name'] for player in trade['to_receive'])
+        players_to_trade.update(player['name'] for player in trade['to_drop'])
     
     # Print the trade
     i += 1
@@ -124,6 +142,9 @@ for trade in mutually_beneficial_trades:
         print(f"{player['name']} ({player['position']}) ", end=" ")
     print("\n\t For: ", end=" ")
     for player in trade['to_receive']:
+        print(f"{player['name']} ({player['position']}) ", end=" ")
+    if trade['to_drop']: print("\n\t Drop: ", end=" ")
+    for player in trade['to_drop']:
         print(f"{player['name']} ({player['position']}) ", end=" ")
     print() 
     

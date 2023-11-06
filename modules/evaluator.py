@@ -2,14 +2,16 @@ from modules import config
 
 
 def player_evaluator(player):
-    player_value = 30 * (1 - player['percentile'] ** 0.5)
+    player_value = 10 * (1 - player['percentile'] ** 0.5)
     
     # While I would love to bring in these stats,
     # They skew the results too much in favor of higher-scoring positions
     # ex. Most QBs have a higher proj_points than most RBs
-    player_value += 3 * player['proj_points']
-    player_value += 0.1 * player['proj_season_points']
-    return player_value
+    # Apparently, this is an expected thing though?
+    
+    player_value += 3 * player['proj_points'] ** 1.5
+    player_value += 0.5 * player['proj_season_points'] ** 1.5
+    return round(player_value)
 
 higher_is_better = True # If false: will minimize. If true: will maximize
 
@@ -29,3 +31,21 @@ def is_beneficial(pre_swap_value, post_swap_value):
         return post_swap_value < pre_swap_value
     else:
         return post_swap_value > pre_swap_value
+
+def worst_player(roster):
+    if len(roster) == 0:
+        return None
+    
+    if higher_is_better:
+        return min(roster, key=player_evaluator)
+    else:
+        return max(roster, key=player_evaluator)
+    
+def best_player(roster):
+    if len(roster) == 0:
+        return None
+    
+    if higher_is_better:
+        return max(roster, key=player_evaluator)
+    else:
+        return min(roster, key=player_evaluator)
