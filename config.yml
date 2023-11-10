@@ -10,6 +10,9 @@ ESPN_S2: "your_espn_s2"
 LEAGUE_ID: "your_league_id"
 Team Name: "your_team_name"
 
+# The highest number of players allowed per team in your league
+Maximum Team Size: 16
+
 # Whether or not to check free agents
 Check Free Agents: True
 
@@ -18,12 +21,9 @@ Maximum Trade Size: 3
 
 # Other team managers are unlikely to accept trades which are not in their favor
 # This is the maximum trade edge, in percent, that will be considered
-Maximum Trade Edge: 0.02
+Maximum Trade Edge: 0.005
 
 # Development Settings
 # Proxies currently don't work
 Use Proxies: False
 User Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-
-Player Cache TTL: 36000
-League Cache TTL: 36000
