@@ -1,16 +1,20 @@
 from modules import config
+from modules.league_info import league
 
+smoid = lambda x: 1/(1+2.71828**x)
 
 def player_evaluator(player):
-    player_value = 10 * (1 - player['percentile'] ** 0.5)
+    week = league.current_week
+    week_rating = smoid((week-5)/2) # Decrease weight of 'explore' as week approaches 10
     
-    # While I would love to bring in these stats,
-    # They skew the results too much in favor of higher-scoring positions
-    # ex. Most QBs have a higher proj_points than most RBs
-    # Apparently, this is an expected thing though?
+    player_value = 2 * week_rating * (1 - player['percentile'] ** 0.5) # Ranges from 0-10 strictly
     
-    player_value += 3 * player['proj_points'] ** 1.5
-    player_value += 0.5 * player['proj_season_points'] ** 1.5
+    # Most QBs have a higher proj_points than most RBs,
+    # and as such are more valuable overall.
+    # This is desired behavior.    
+    
+    player_value += 2 * player['proj_points'] ** 1.5 # Ranges from 0-100, gets up to 250 for QBs 
+    player_value += week_rating * (0.15 * player['proj_season_points']) ** 1.5 # Ranges from 0-250, with overflow
     return round(player_value)
 
 higher_is_better = True # If false: will minimize. If true: will maximize

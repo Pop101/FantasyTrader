@@ -2,14 +2,12 @@ import re
 from modules import config
 from modules.player_stats import get_player_info
 from modules.evaluator import player_evaluator, higher_is_better
-from espn_api.football import League
-from datetime import datetime
+from modules.league_info import league
 from Levenshtein import ratio
 from cachetools import TTLCache, cached
 
 league_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
 free_agent_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
-league = League(int(config.league_id), datetime.now().year, config.espn_s2 or None, config.swid or None, debug=False)
 
 positions_on_team = {
     'QB': 1,
