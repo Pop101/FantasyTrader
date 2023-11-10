@@ -7,7 +7,7 @@ def player_evaluator(player):
     week = league.current_week
     week_rating = smoid((week-5)/2) # Decrease weight of 'explore' as week approaches 10
     
-    player_value = 2 * week_rating * (1 - player['percentile'] ** 0.5) # Ranges from 0-10 strictly
+    player_value = 50 * week_rating * (1 - player['percentile'] ** 0.5) # Ranges from 0-50 strictly
     
     # Most QBs have a higher proj_points than most RBs,
     # and as such are more valuable overall.
