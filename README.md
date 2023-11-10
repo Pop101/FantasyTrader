@@ -39,8 +39,8 @@ Some important settings to take note of is the maximum trade edge,
 which will greatly influence the trades suggested by being more aggressive and willing to
 rip people off. The higher it is, the less likely people will accept your trades as they will be worse off.
 
-If you up the maximum trade size, the program will consider many more trades, including 2-for-1 trades.
-This takes a very long time and is currently untested.
+If you up the maximum trade size, the program will consider many more trades, including 2-for-1 trades,
+and 2-for-2 trades, even suggesting who to drop.
 
 **If your league is private, you must set SWID and ESPN_S2**
 
@@ -101,7 +101,7 @@ Finally, the program will print out the best trades it found, as well as the bes
 
 # Tweaking
 
-It is very likely that the evaluator is very bad. It is currently very simple and does not take into account many factors. If you have any ideas on how to improve it, please open an issue or a pull request.
+It is very likely that the evaluator is rather bad. It is currently somewhat simple, with its largest factors being projected points for next game and all-season projected points. The impact of expert ratings drops quickly after the first few weeks. If you have any ideas on how to improve it, please open an issue or a pull request.
 
 To try out different evaluators, make any change to `modules/evaluator.py` and rerun the program. It will automatically reload the evaluator and use the new one.
 
@@ -111,7 +111,6 @@ Helpful information: A player's information looks like this:
     "name": "T. Hill",
     "rank": 0,
     "percentile": 0.0,
-    "percentile_score": 0.0,
     "pos": "WR",
     "position": "WR",
     "proj_points": 23.9,
