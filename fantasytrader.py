@@ -18,7 +18,7 @@ for other_team in get_teams()[1:]:
     print(f"Simulating trades with {other_team['team_name']}")
     for to_swap, to_receive in generate_trades_between(my_team['roster'], other_team['roster'], config.maximum_trade_size):
         pre_swap_team1_value = estimate_team_value(my_team)
-        pre_swap_team2_value = estimate_team_value(other_team)
+        pre_swap_team2_value = estimate_team_value(other_team, bench_weight=config.opponent_bench_weight)
         
         # Perform swaps.
         # Consider 4 'for's to handle name collisions
