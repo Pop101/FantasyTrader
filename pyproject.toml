@@ -10,7 +10,6 @@ python = "^3.11"
 espn-api = "^0.32.0"
 PyYAML = "^6.0.1"
 anyascii = "^0.3.2"
-cachetools = "^5.3.1"
 lxml = "^4.9.3"
 levenshtein = "^0.22.0"
 

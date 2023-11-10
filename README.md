@@ -29,7 +29,6 @@ This project is created with:
 - [PyYAML](https://github.com/yaml/pyyaml): 6.0.1
 - [anyascii](https://github.com/anyascii/anyascii): 0.3.2
 - [lxml](https://lxml.de/): 4.9.3
-- [cachetools](https://github.com/tkem/cachetools/): 5.3.1
 - [levenshtein](https://github.com/maxbachmann/python-Levenshtein): 0.22.0
   
 # Getting Started
