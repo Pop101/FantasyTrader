@@ -1,15 +1,12 @@
-from cachetools import TTLCache, cached
-from functools import lru_cache
+from functools import cache
 
 from modules import config
 from modules.proxied_request import proxied_get
 from lxml import html
 from Levenshtein import ratio
 
-cache = TTLCache(maxsize=1000, ttl=config.player_cache_ttl)
-
 # Ideally, we could scrape the player stats from https://www.fantasypros.com/nfl/rankings/ros-overall.php
-@cached(cache)
+@cache
 def get_all_players():
     """Returns a list of all players, sorted by position and rank"""
     players = list()
@@ -37,7 +34,7 @@ def get_all_players():
     
     return players
 
-@lru_cache
+@cache
 def search_player_info(player_name, pos=None):
     """Search for a player by name, optionally filtered by position
 

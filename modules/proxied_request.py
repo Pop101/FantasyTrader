@@ -10,8 +10,6 @@ def proxied_post(*args, **kwargs):
 
 def proxied_request(method, *args, max_retries=3, **kwargs):
     # Pick a proxy to use
-    # TODO: pick ones that actually work
-    # TODO: cache this request in a TTLcache
     proxy_req = requests.get('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&anonymity=all')
     proxies = [str(x).strip() for x in proxy_req.text.split('\n') if x.strip()]
     proxies = random.choices(proxies, k=max(max_retries, len(proxies)))

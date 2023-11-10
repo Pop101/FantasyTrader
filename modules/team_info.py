@@ -4,10 +4,7 @@ from modules.player_stats import get_player_info
 from modules.evaluator import player_evaluator, higher_is_better
 from modules.league_info import league
 from Levenshtein import ratio
-from cachetools import TTLCache, cached
-
-league_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
-free_agent_cache = TTLCache(maxsize=2, ttl=config.league_cache_ttl)
+from functools import cache
 
 positions_on_team = {
     'QB': 1,
@@ -54,7 +51,7 @@ def player_to_dict(player):
     # Merge dicts
     return {**pro_ratings, **basic_info}
 
-@cached(league_cache)  
+@cache
 def get_teams():
     teams = list()
     my_team_name = config.team_name
@@ -178,7 +175,7 @@ def print_team(team:dict, scores=True, lineup=True):
     
     return output
 
-@cached(free_agent_cache)
+@cache
 def get_free_agents():
     """Returns an unranked list of free agent names and positions"""
     free_agents = list()
