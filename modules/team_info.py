@@ -115,14 +115,17 @@ def get_team_lineup(team:dict):
     
     return players_by_position
 
-def estimate_team_value(team:dict):
+def estimate_team_value(team:dict, bench_weight=0):
     """Estimates the value of a team based on the average value of its non-benched players"""
     
     lineup = get_team_lineup(team)
     
     total_value = 0
     for pos, players in lineup.items():
-        if pos == 'Bench': continue
+        if pos == 'Bench':
+            for player in players:
+                total_value += bench_weight * player_evaluator(player)
+            continue
         
         # If we cannot fill a position, the team is invalid
         if len(players) < positions_on_team[pos]:

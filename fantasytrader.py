@@ -55,7 +55,7 @@ for other_team in get_teams()[1:]:
             my_team_postswap = remove_from_team(my_team_postswap, worst_benchie)
         
         post_swap_team1_value = estimate_team_value(my_team_postswap)
-        post_swap_team2_value = estimate_team_value(ot_team_postswap)
+        post_swap_team2_value = estimate_team_value(ot_team_postswap, bench_weight=config.opponent_bench_weight)
         
         if is_trade_mutual(pre_swap_team1_value, post_swap_team1_value, pre_swap_team2_value, post_swap_team2_value):
             mutually_beneficial_trades.append({

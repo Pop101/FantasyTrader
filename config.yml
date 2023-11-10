@@ -23,6 +23,12 @@ Maximum Trade Size: 3
 # This is the maximum trade edge, in percent, that will be considered
 Maximum Trade Edge: 0.005
 
+# % Of value benched players have on the opponent's team when considering
+# trades with them. Too high and trades will favor bench improvements over
+# actual team improvements, which isn't mutual. Too low and you will devalue
+# players off their bench.
+Opponent Bench Weight: 0.2
+
 # Development Settings
 # Proxies currently don't work
 Use Proxies: False
