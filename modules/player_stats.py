@@ -28,7 +28,6 @@ def get_all_players():
                 'name': player_name.strip(),
                 'rank': rank,
                 'percentile': percentile,
-                'percentile_score': (percentile ** 0.5),
                 'pos': pos,
             })
     
