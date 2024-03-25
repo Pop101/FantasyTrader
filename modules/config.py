@@ -8,7 +8,7 @@ def normalize_str(_str) -> str:
     _str = _str.replace('-', '_')
     return _str
 
-with open('config-priv.yml', 'r') as file:
+with open('config.yml', 'r') as file:
     raw_cfg = yaml.safe_load(file)
     for k, v in raw_cfg.items():
         if str(v).startswith('your_'):
